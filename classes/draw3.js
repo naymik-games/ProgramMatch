@@ -62,6 +62,7 @@ class Draw3P {
   // generates the game field
   generateField() {
     this.gameArray = [];
+
     for (let i = 0; i < this.getRows(); i++) {
       this.gameArray[i] = [];
       for (let j = 0; j < this.getColumns(); j++) {
@@ -550,6 +551,27 @@ class Draw3P {
     }
     return { row: nR, col: nC }
 
+  }
+  getBoard() {
+    var gameSave = [];
+
+    for (let i = 0; i < this.rows; i++) {
+      gameSave[i] = [];
+      for (let j = 0; j < this.columns; j++) {
+
+
+        gameSave[i][j] = {
+          value: this.gameArray[i][j].value,
+          type: this.gameArray[i][j].type,
+          isEmpty: this.gameArray[i][j].isEmpty,
+          row: i,
+          column: j,
+          isPlayer: this.gameArray[i][j].isPlayer
+        }
+
+      }
+    }
+    return gameSave
   }
 }
 Draw3P.RIGHT = 1;

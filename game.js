@@ -10,7 +10,7 @@ window.onload = function () {
             width: 900,
             height: 1640
         },
-        scene: [preloadGame, playGame]
+        scene: [preloadGame, startGame, playGame]
     }
     game = new Phaser.Game(gameConfig);
     window.focus();
@@ -24,6 +24,8 @@ class playGame extends Phaser.Scene {
 
     }
     create() {
+
+
         this.cameras.main.setBackgroundColor(0x282828);
         this.rows = 11
         this.cols = 7
@@ -144,11 +146,11 @@ class playGame extends Phaser.Scene {
                     if (this.draw3.nonSelect(row, col)) { return }
                     if (this.draw3.getChainLength() == 1 && this.draw3.typeAt(row, col) == 'productivity') { return }
 
-                    if (this.inPath({ row: row, col: col })) {
+                    /* if (this.inPath({ row: row, col: col })) {
                         //console.log('back to first')
                         return
                     }
-
+ */
 
                     if (this.draw3.continuesChain(row, col)) {
                         this.draw3.customDataOf(row, col).alpha = 0.5;
@@ -333,6 +335,7 @@ class playGame extends Phaser.Scene {
         this.experienceText.setText('E: ' + this.experience)
         this.totalMovesText.setText('TM: ' + this.moves)
         var per = this.score / this.scoreGoal
+
         //this.levelProgressBar.displayWidth = 
         var tween = this.tweens.add({
             targets: this.levelProgressBar,
@@ -349,9 +352,20 @@ class playGame extends Phaser.Scene {
                         displayWidth: 0,
                         duration: 200
                     })
+                } else {
+                    if (this.moves % 10 == 0) {
+                        var ranNum = Phaser.Math.Between(1, 100)
+                        if (ranNum < 25) {
+                            this.addVirus(Phaser.Math.Between(1, 4))
+                        } else if (ranNum < 50) {
+                            this.addProductivity(Phaser.Math.Between(1, 4))
+                        }
+                    }
                 }
+                /* this.saveGame() */
             }
         })
+
 
     }
     updateLevel() {
@@ -672,6 +686,29 @@ class playGame extends Phaser.Scene {
         // thankYou.setOrigin(0.5);
         // menuGroup.add(thankYou);    
         ////////end menu
+    }
+    saveGame() {
+        localStorage.removeItem("pmSave");
+        var board = this.draw3.getBoard()
+        //var boardExtra = this.match3.getBoardExtra()
+        //console.log(boardExtra)
+        saveData.totalLines = this.totalLines;
+        saveData.moves = this.moves
+        saveData.experience = this.experience
+        saveData.score = this.score
+        saveData.scoreGoal = this.scoreGoal
+        saveData.maxMove = this.maxMove
+        saveData.onLevel = this.onLevel
+        saveData.allowDiagonal = this.allowDiagonal
+        saveData.items = this.items
+
+
+        saveData.gameArray = board
+        // saveData.gameArrayExtra = boardExtra
+
+        localStorage.setItem('pmSave', JSON.stringify(saveData));
+        /* gameData.coins = this.coins
+        localStorage.setItem('pmData', JSON.stringify(gameData)); */
     }
 }
 

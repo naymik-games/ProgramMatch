@@ -8,6 +8,7 @@ var filesToCache = [
 
 
   '/scenes/preload.js',
+  '/scenes/startGame.js',
 
   '/assets/fonts/topaz.png',
   '/assets/fonts/topaz.xml',
