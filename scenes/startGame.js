@@ -13,11 +13,11 @@ class startGame extends Phaser.Scene {
       localStorage.setItem('pmData', JSON.stringify(defaultData));
       gameData = defaultData;
     }*/
-    /*  saveData = JSON.parse(localStorage.getItem('pmSave'));
-     if (saveData === null || saveData.length <= 0) {
-       localStorage.setItem('pmSave', JSON.stringify(defaultSave));
-       saveData = defaultSave;
-     } */
+    saveData = JSON.parse(localStorage.getItem('pmSave'));
+    if (saveData === null || saveData.length <= 0) {
+      localStorage.setItem('pmSave', JSON.stringify(defaultSave));
+      saveData = defaultSave;
+    }
     this.cameras.main.setBackgroundColor(0x000000);
 
     var title = this.add.bitmapText(game.config.width / 2, 100, 'topaz', 'ProgramMatch', 150).setOrigin(.5).setTint(0xc76210);

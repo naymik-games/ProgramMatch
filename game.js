@@ -27,21 +27,40 @@ class playGame extends Phaser.Scene {
 
 
         this.cameras.main.setBackgroundColor(0x282828);
-        this.rows = 11
-        this.cols = 7
-        this.items = 3
+        var currentGame = {}
+        if (load) {
+            currentGame = saveData
+        } else {
+            currentGame = defaultSave
+        }
+
+        this.rows = currentGame.rows
+        this.cols = currentGame.cols
+        this.items = currentGame.items
+        this.totalLines = currentGame.totalLines
+        this.moves = currentGame.moves
+        this.experience = currentGame.experience
+        this.bugsSquashed = currentGame.bugsSquashed
+        this.virusesKilled = currentGame.virusesKilled
+        this.score = currentGame.score
+        this.scoreGoal = currentGame.scoreGoal
+        this.scoreTotal = currentGame.scoreTotal
+        this.maxMove = currentGame.maxMove
+        this.onLevel = currentGame.onLevel
+        this.hasCardVirus = currentGame.hasCardVirus
+        this.cardVirusStart = currentGame.cardVirusStart
+        this.hasCardCode = currentGame.hasCardCode
+        this.cardCodeStart = currentGame.cardCodeStart
+        this.hasCardProdject = currentGame.hasCardProdject
+        this.cardProdjectStart = currentGame.cardProdjectStart
+        this.allowDiagonal = currentGame.allowDiagonal
+        this.virusRandomMax = currentGame.virusRandomMax
+
         this.canPick = true;
         this.dragging = false;
-        this.totalLines = 0;
-        this.moves = 0
-        this.experience = 0
-        this.bugsSquashed = 0
-        this.virusesKilled = 0
-        this.score = 0
-        this.scoreGoal = 1000
-        this.maxMove = 7
-        this.onLevel = 1
-        this.allowDiagonal = true
+
+        this.cardArray = JSON.parse(JSON.stringify(cardDefault));
+        this.shuffle(this.cardArray)
         this.draw3 = new Draw3P({
             rows: this.rows,
             columns: this.cols,
@@ -56,15 +75,15 @@ class playGame extends Phaser.Scene {
         this.draw3.generateField();
         this.drawField();
 
-        this.playerBadge = this.add.image(gameOptions.boardOffset.x + gameOptions.gemSize / 2, (gameOptions.boardOffset.y + gameOptions.gemSize * (this.rows) + gameOptions.gemSize / 2) + 50, 'badge')
+        this.playerBadge = this.add.image(gameOptions.boardOffset.x + gameOptions.gemSize / 2, (gameOptions.boardOffset.y + gameOptions.gemSize * (this.rows) + gameOptions.gemSize / 2) + 50, 'badge').setInteractive()
+        this.playerBadge.on('pointerdown', this.toggleStatMenu, this)
+
         this.levelProgressBar = this.add.image(gameOptions.boardOffset.x + gameOptions.gemSize + 15, (gameOptions.boardOffset.y + gameOptions.gemSize * (this.rows) + gameOptions.gemSize / 2) + 60, 'blank').setOrigin(0, .5).setTint(0xffb000)
-        this.levelProgressBar.displayWidth = 0;
+        this.levelProgressBar.displayWidth = 500 * this.score / this.scoreGoal;
         this.levelProgressBar.displayHeight = 25;
         this.levelText = this.add.bitmapText((gameOptions.boardOffset.x + gameOptions.gemSize * (this.cols - 1)) + 15, (gameOptions.boardOffset.y + gameOptions.gemSize * (this.rows) + gameOptions.gemSize / 2) + 50, 'topaz', this.onLevel, 60).setOrigin(0, .5).setTint(0x00ff66);
-        this.experienceText = this.add.bitmapText(650, 1550, 'topaz', 'E: 0', 60).setOrigin(0, .5).setTint(0x00ff66);
-        this.scoreText = this.add.bitmapText(50, 1450, 'topaz', 'S: 0', 60).setOrigin(0, .5).setTint(0xffb000);
-
-
+        this.scoreText = this.add.bitmapText(50, 1425, 'topaz', 'S: ' + this.score, 60).setOrigin(0, .5).setTint(0xffb000);
+        this.scoreTotalText = this.add.bitmapText(50, 1500, 'topaz', 'TS: ' + this.scoreTotal, 40).setOrigin(0, .5).setTint(0xfafafa);
         this.chainLengthBack = this.add.image(gameOptions.boardOffset.x + gameOptions.gemSize / 2, (gameOptions.boardOffset.y + gameOptions.gemSize * (this.rows) + gameOptions.gemSize / 2) + 50, 'blank').setAlpha(0)
         this.chainLengthBack.displayWidth = 96;
         this.chainLengthBack.displayHeight = 96;
@@ -72,11 +91,6 @@ class playGame extends Phaser.Scene {
 
 
 
-
-        this.totalLinesText = this.add.bitmapText(450, 1450, 'topaz', 'TL: 0', 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
-        this.totalMovesText = this.add.bitmapText(450, 1500, 'topaz', 'TM: 0', 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
-        this.totalBugsText = this.add.bitmapText(450, 1550, 'topaz', 'B: 0', 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
-        this.totoalVirusesText = this.add.bitmapText(450, 1600, 'topaz', 'V: 0', 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
 
         this.input.on("pointerdown", this.gemSelect, this);
         this.input.on("pointermove", this.drawPath, this);
@@ -101,8 +115,16 @@ class playGame extends Phaser.Scene {
         this.squareBox.strokeRoundedRect(gameOptions.boardOffset.x - 15, gameOptions.boardOffset.y - 15, (gameOptions.gemSize * this.cols) + 30, ((gameOptions.gemSize * this.rows) + 30), 15);
 
         this.makeMenu()
+        this.makeSatMenu()
         //this.squareBox.fillRoundedRect(this.xOffset - 5, this.yOffset - 5, (this.dotSize * this.cols) + 10, (this.dotSize * this.rows + 10), 15);
-        this.showToast('hello')
+        this.showToast('hello world')
+
+        this.iconBack = this.add.image(game.config.width, 1450, 'blank').setOrigin(1, .5).setTint(0x000000).setAlpha(1)
+        this.iconBack.displayWidth = 315;
+        this.iconBack.displayHeight = 116;
+        this.cardVirusIcon = this.add.image(-50, -50, 'card_virus')
+        this.cardCodeIcon = this.add.image(-50, -50, 'card_code')
+        this.cardProdjectIcon = this.add.image(-50, -50, 'card_prodject')
     }
     drawField() {
         this.poolArray = [];
@@ -136,6 +158,7 @@ class playGame extends Phaser.Scene {
         }
     }
     gemSelect(pointer) {
+        //this.draw3.checkForMoves()
         if (this.canPick) {
             let row = Math.floor((pointer.y - gameOptions.boardOffset.y) / gameOptions.gemSize);
             let col = Math.floor((pointer.x - gameOptions.boardOffset.x) / gameOptions.gemSize);
@@ -156,7 +179,10 @@ class playGame extends Phaser.Scene {
             if (this.draw3.validPick(row, col)) {
                 let distance = Phaser.Math.Distance.Between(pointer.x, pointer.y, this.draw3.customDataOf(row, col).x, this.draw3.customDataOf(row, col).y);
                 if (distance < gameOptions.gemSize * 0.4) {
-                    if (this.draw3.getChainLength() > this.maxMove) { return }
+                    if (!this.hasCardCode) {
+                        if (this.draw3.getChainLength() > this.maxMove) { return }
+                    }
+
                     if (this.draw3.nonSelect(row, col)) { return }
                     if (this.draw3.getChainLength() == 1 && this.draw3.typeAt(row, col) == 'productivity') { return }
 
@@ -176,6 +202,8 @@ class playGame extends Phaser.Scene {
                     else {
                         if (this.draw3.backtracksChain(row, col)) {
                             let removedItem = this.draw3.removeLastChainItem();
+
+                            this.chainLengthText.setText(this.draw3.getChainLength())
                             this.draw3.customDataOf(removedItem.row, removedItem.column).alpha = 1;
                             this.hidePath();
                             this.displayPath();
@@ -215,10 +243,45 @@ class playGame extends Phaser.Scene {
             else {
                 this.colorBombs = []
                 this.moves++
-
-
+                if (this.hasCardCode) {
+                    if (this.moves == this.cardCodeStart + levelSettings.cardCodeDuration) {
+                        this.hasCardCode = false
+                        var tweenCC = this.tweens.add({
+                            targets: this.cardCodeIcon,
+                            y: game.config.height + 50,
+                            duration: 300
+                        })
+                    }
+                }
+                if (this.hasCardVirus) {
+                    if (this.moves == this.cardVirusStart + levelSettings.cardVirusDuration) {
+                        this.hasCardVirus = false
+                        var tweenCC = this.tweens.add({
+                            targets: this.cardVirusIcon,
+                            y: game.config.height + 50,
+                            duration: 300
+                        })
+                    }
+                }
+                if (this.hasCardProdject) {
+                    if (this.moves == this.cardProdjectStart + levelSettings.cardProdjectDuration) {
+                        this.hasCardProdject = false
+                        this.items = this.saveItems
+                        this.draw3.items = this.saveItems
+                        var tweenCC = this.tweens.add({
+                            targets: this.cardProdjectIcon,
+                            y: game.config.height + 50,
+                            duration: 300
+                        })
+                    }
+                }
 
                 this.score += moveLines * this.experience
+                if (this.draw3.getChainLength() > 24) {
+                    this.score += 1000
+                    this.showToast('25+ lines of code!')
+
+                }
                 this.updateStats()
                 this.playerStep();
             }
@@ -243,11 +306,7 @@ class playGame extends Phaser.Scene {
                     var nei = this.draw3.isVirusNeighbor(playerMovement.to.row, playerMovement.to.column)
                     if (nei.length > 0) {
                         for (var i = 0; i < nei.length; i++) {
-                            if (this.draw3.customDataOf(nei[i].r, nei[i].c).alpha == 1) {
-                                this.draw3.customDataOf(nei[i].r, nei[i].c).setAlpha(.6)
-                            } else if (this.draw3.customDataOf(nei[i].r, nei[i].c).alpha == .6) {
-                                this.draw3.customDataOf(nei[i].r, nei[i].c).setAlpha(.2)
-                            } else {
+                            if (this.hasCardVirus) {
                                 let randomValue = Math.floor(Math.random() * this.items)
                                 this.explode(nei[i].r, nei[i].c)
                                 //this.totalLines += 20
@@ -259,13 +318,37 @@ class playGame extends Phaser.Scene {
                                 //this.colorBomb(nei[i].r, nei[i].c, randomValue)
                                 this.colorBombs.push(nei[i])
                                 this.draw3.customDataOf(nei[i].r, nei[i].c).setAlpha(1).setTexture('gem').setTint(colors[randomValue])
+                            } else {
+                                if (this.draw3.customDataOf(nei[i].r, nei[i].c).alpha == 1) {
+                                    this.draw3.customDataOf(nei[i].r, nei[i].c).setAlpha(.6)
+                                } else if (this.draw3.customDataOf(nei[i].r, nei[i].c).alpha == .6) {
+                                    this.draw3.customDataOf(nei[i].r, nei[i].c).setAlpha(.2)
+                                } else {
+                                    let randomValue = Math.floor(Math.random() * this.items)
+                                    this.explode(nei[i].r, nei[i].c)
+                                    //this.totalLines += 20
+                                    this.virusesKilled++;
+                                    this.score += 100
+                                    this.updateStats()
+                                    this.draw3.setValue(nei[i].r, nei[i].c, randomValue)
+                                    this.draw3.removeVirus(nei[i].r, nei[i].c)
+                                    //this.colorBomb(nei[i].r, nei[i].c, randomValue)
+                                    this.colorBombs.push(nei[i])
+                                    this.draw3.customDataOf(nei[i].r, nei[i].c).setAlpha(1).setTexture('gem').setTint(colors[randomValue])
+                                }
                             }
+
                         }
 
 
                     }
                     if (this.draw3.typeAt(playerMovement.to.row, playerMovement.to.column) == 'productivity') {
                         this.doProductivity(playerMovement.from.row, playerMovement.from.column, this.draw3.valueAt(playerMovement.to.row, playerMovement.to.column))
+                    }
+                    if (this.draw3.valueAt(playerMovement.to.row, playerMovement.to.column) == cardValue) {
+                        var tex = this.draw3.customDataOf(playerMovement.to.row, playerMovement.to.column).texture.key
+
+                        this.collectCard(playerMovement.to.row, playerMovement.to.column, tex)
                     }
                     this.poolArray.push(this.draw3.customDataOf(playerMovement.to.row, playerMovement.to.column));
                     this.draw3.customDataOf(playerMovement.to.row, playerMovement.to.column).alpha = 0;
@@ -337,10 +420,12 @@ class playGame extends Phaser.Scene {
         if (this.bugBottomCheck()) {
             this.doBug()
         } else if (this.virusCheck()) {
-            console.log('viruses exist')
+            //console.log('viruses exist')
             this.doVirus()
             this.canPick = true;
+            // this.draw3.checkForMoves()
         } else {
+            // this.draw3.checkForMoves()
             this.canPick = true;
         }
 
@@ -352,8 +437,8 @@ class playGame extends Phaser.Scene {
         this.scoreText.setText('S: ' + this.score)
 
 
-        this.experienceText.setText('E: ' + this.experience)
-        this.totalMovesText.setText('TM: ' + this.moves)
+        this.experienceText.setText('Avg. Lines: ' + this.experience)
+        this.totalMovesText.setText('Moves: ' + this.moves)
         this.totalBugsText.setText('B: ' + this.bugsSquashed)
         this.totoalVirusesText.setText('V: ' + this.virusesKilled)
         var per = this.score / this.scoreGoal
@@ -366,6 +451,10 @@ class playGame extends Phaser.Scene {
             callbackScope: this,
             onComplete: function () {
                 if (this.score >= this.scoreGoal) {
+                    console.log(this.score)
+                    this.scoreTotal += this.score
+                    console.log(this.scoreTotal)
+                    this.scoreTotalText.setText('TS: ' + this.scoreTotal)
                     this.score = 0
                     this.scoreGoal = this.onLevel * 1000
                     this.updateLevel()
@@ -377,14 +466,21 @@ class playGame extends Phaser.Scene {
                 } else {
                     if (this.moves % 10 == 0) {
                         var ranNum = Phaser.Math.Between(1, 100)
-                        if (ranNum < 25) {
-                            this.addVirus(Phaser.Math.Between(1, 4))
-                        } else if (ranNum < 50) {
+                        if (ranNum < 5) {
+                            this.addVirus(Phaser.Math.Between(1, 1 * this.virusRandomMax))
+                        } else if (ranNum < 7) {
                             this.addProductivity(Phaser.Math.Between(1, 4))
+                        } else if (ranNum < 75) {
+                            if (this.cardArray.length == 0) {
+                                this.cardArray = JSON.parse(JSON.stringify(cardDefault));
+                                this.shuffle(this.cardArray)
+                            }
+
+                            this.addCard(this.cardArray.pop())
                         }
                     }
                 }
-                /* this.saveGame() */
+                this.saveGame()
             }
         })
 
@@ -404,12 +500,24 @@ class playGame extends Phaser.Scene {
             }
         })
         if (this.onLevel == 4) {
-            this.items = 4
-            this.draw3.items = 4
+            if (this.hasCardProdject) {
+                this.saveItems = 4
+
+            } else {
+                this.items = 4
+                this.draw3.items = 4
+            }
+
 
         } else if (this.onLevel == 6) {
-            this.items = 5
-            this.draw3.items = 5
+            this.virusRandomMax = 6
+            if (this.hasCardProdject) {
+                this.saveItems = 5
+
+            } else {
+                this.items = 5
+                this.draw3.items = 5
+            }
         }
         tween.on('complete', function (tween, targets) {
             this.addVirus(this.onLevel)
@@ -417,6 +525,27 @@ class playGame extends Phaser.Scene {
             this.showToast('You\'ve been promoted!')
         }, this);
 
+    }
+    addCard(type) {
+        if (type == 'card_virus') {
+            if (this.hasCardVirus) { return }
+        } else if (type == 'card_code') {
+            if (this.hasCardCode) { return }
+        } else if (type = 'card_prodject') {
+            if (this.hasCardProdject) { return }
+        }
+        var cards = this.draw3.addCard(type);
+        cards.forEach(function (card) {
+
+            this.draw3.customDataOf(card.row, card.col).setTexture(type).clearTint()
+            var tween = this.tweens.add({
+                targets: this.draw3.customDataOf(card.row, card.col),
+                scale: 2,
+                duration: 300,
+                yoyo: true
+
+            })
+        }.bind(this));
     }
     addVirus(count) {
         var viruses = this.draw3.addVirus(count)
@@ -447,6 +576,8 @@ class playGame extends Phaser.Scene {
         }.bind(this));
     }
     doProductivity(row, col, value) {
+        this.score += 75
+        this.updateStats()
         var dots = this.draw3.setColumn(row, col, value)
         dots.forEach(function (dot) {
 
@@ -558,6 +689,58 @@ class playGame extends Phaser.Scene {
             this.totalLinesText.setText('TL: ' + this.totalLines)
             this.makeGemsFall()
         }
+    }
+    collectCard(row, col, type) {
+        var target, ypos, xpos
+        this.score += 100
+        this.updateStats()
+        if (type == 'card_virus') {
+            this.cardVirusIcon.setPosition(450, 650)
+            target = this.cardVirusIcon
+            xpos = 850
+            ypos = 1450
+            this.hasCardVirus = true
+            this.cardVirusStart = this.moves
+        } else if (type == 'card_code') {
+            this.cardCodeIcon.setPosition(450, 650)
+            target = this.cardCodeIcon
+            xpos = 750
+            ypos = 1450
+            this.hasCardCode = true
+            this.cardCodeStart = this.moves
+        } else if (type = 'card_prodject') {
+            this.cardProdjectIcon.setPosition(450, 650)
+            target = this.cardProdjectIcon
+            xpos = 650
+            ypos = 1450
+            this.hasCardProdject = true
+            this.cardProdjectStart = this.moves
+            this.saveItems = this.items
+            this.items = 3
+            this.draw3.items = 3
+        }
+        var tween = this.tweens.add({
+            targets: target,
+            duration: 300,
+            scale: 3,
+            yoyo: true
+
+        })
+        tween.on('complete', function () {
+            var tween = this.tweens.add({
+                targets: target,
+                duration: 300,
+                x: xpos,
+                y: ypos
+
+            })
+        }, this)
+        /*  this.hasCardVirus = false
+         this.cardVirusStart = 0
+         this.hasCardCode = false
+         this.cardCodeStart = 0
+         this.hasCardProdject = false
+         this.cardProdjectStart = 0 */
     }
     displayPath() {
         let path = this.draw3.getPath();
@@ -709,26 +892,84 @@ class playGame extends Phaser.Scene {
             this.scene.start('PlayGame')
         }, this)
         this.menuGroup.add(helpButton);
-        //var thankYou = game.add.button(game.config.width / 2, game.config.height + 130, "thankyou", function(){});
-        // thankYou.setOrigin(0.5);
-        // menuGroup.add(thankYou);    
-        ////////end menu
+
+    }
+    makeSatMenu() {
+        ////////menu
+        this.menuStatGroup = this.add.container(-800, 0).setDepth(3);
+        var menuBG = this.add.image(0, game.config.height / 2, 'blank').setOrigin(0, .5).setTint(0x333333).setAlpha(.9)
+        menuBG.displayWidth = 800;
+        menuBG.displayHeight = 750
+        this.menuStatGroup.add(menuBG)
+        this.performanceText = this.add.bitmapText(50, 500 + 70 * 0, 'topaz', 'PERFORMANCE REVIEW', 50).setOrigin(0, .5).setTint(0XFAFAFA);
+        this.menuStatGroup.add(this.performanceText)
+        //score
+        this.scoreStatText = this.add.bitmapText(50, 500 + 70 * 1, 'topaz', 'Score: ' + this.score + '/ Goal: ' + this.scoreTotal, 50).setOrigin(0, .5).setTint(0x00ff66);
+        this.menuStatGroup.add(this.scoreStatText)
+        //avg
+        this.experienceText = this.add.bitmapText(50, 500 + 70 * 2, 'topaz', 'Avg. Lines: ' + this.experience, 50).setOrigin(0, .5).setTint(0x00ff66);
+        this.menuStatGroup.add(this.experienceText)
+        //moves
+        this.totalMovesText = this.add.bitmapText(50, 500 + 70 * 3, 'topaz', 'Moves: ' + this.moves, 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
+        this.menuStatGroup.add(this.totalMovesText)
+        //total lines
+        this.totalLinesText = this.add.bitmapText(50, 500 + 70 * 4, 'topaz', 'Total Lines: ' + this.totalLines, 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
+        this.menuStatGroup.add(this.totalLinesText)
+        //bugs
+        this.totalBugsText = this.add.bitmapText(50, 500 + 70 * 5, 'topaz', 'Bugs Squashed: ' + this.bugsSquashed, 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
+        this.menuStatGroup.add(this.totalBugsText)
+        //virus
+        this.totoalVirusesText = this.add.bitmapText(50, 500 + 70 * 6, 'topaz', 'Viruses Killed: ' + this.virusesKilled, 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
+        this.menuStatGroup.add(this.totoalVirusesText)
+
+    }
+    toggleStatMenu() {
+        console.log(this.menuStatGroup.x)
+        if (this.menuStatGroup.x == 0) {
+            var menuTween = this.tweens.add({
+                targets: this.menuStatGroup,
+                x: -800,
+                duration: 500,
+                ease: 'Bounce'
+            })
+
+        }
+        if (this.menuStatGroup.x == -800) {
+            this.scoreStatText.setText('Score: ' + this.score + ' / Goal: ' + this.scoreGoal)
+            var menuTween = this.tweens.add({
+                targets: this.menuStatGroup,
+                x: 0,
+                duration: 500,
+                ease: 'Bounce'
+            })
+        }
     }
     saveGame() {
         localStorage.removeItem("pmSave");
         var board = this.draw3.getBoard()
         //var boardExtra = this.match3.getBoardExtra()
         //console.log(boardExtra)
+        saveData.rows = this.rows
+        saveData.cols = this.cols
+        saveData.items = this.items
         saveData.totalLines = this.totalLines;
         saveData.moves = this.moves
         saveData.experience = this.experience
+        saveData.bugsSquashed = this.bugsSquashed
+        saveData.virusesKilled = this.virusesKilled
         saveData.score = this.score
         saveData.scoreGoal = this.scoreGoal
+        saveData.scoreTotal = this.scoreTotal
         saveData.maxMove = this.maxMove
         saveData.onLevel = this.onLevel
+        saveData.hasCardVirus = this.hasCardVirus
+        saveData.cardVirusStart = this.cardVirusStart
+        saveData.hasCardCode = this.hasCardCode
+        saveData.cardCodeStart = this.cardCodeStart
+        saveData.hasCardProdject = this.hasCardProdject
+        saveData.cardProdjectStart = this.cardProdjectStart
         saveData.allowDiagonal = this.allowDiagonal
-        saveData.items = this.items
-
+        saveData.virusRandomMax = this.virusRandomMax
 
         saveData.gameArray = board
         // saveData.gameArrayExtra = boardExtra
@@ -736,6 +977,23 @@ class playGame extends Phaser.Scene {
         localStorage.setItem('pmSave', JSON.stringify(saveData));
         /* gameData.coins = this.coins
         localStorage.setItem('pmData', JSON.stringify(gameData)); */
+    }
+    shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+
+        // While there remain elements to shuffle.
+        while (currentIndex != 0) {
+
+            // Pick a remaining element.
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+
+            // And swap it with the current element.
+            [array[currentIndex], array[randomIndex]] = [
+                array[randomIndex], array[currentIndex]];
+        }
+
+        return array;
     }
 }
 

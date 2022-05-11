@@ -151,6 +151,22 @@ class Draw3P {
     }
     return result
   }
+  addCard(type) {
+    var i = 0
+    var result = []
+    while (i < 1) {
+      var row = Phaser.Math.Between(0, this.getRows() - 1)
+      var col = Phaser.Math.Between(0, this.getColumns() - 1)
+
+      if (this.gameArray[row][col].type == 'dot' && !this.gameArray[row][col].isPlayer) {
+        this.gameArray[row][col].value = cardValue;
+        this.gameArray[row][col].type = type
+        result.push({ row: row, col: col })
+        i++
+      }
+    }
+    return result
+  }
   makeBug(row, column) {
     this.gameArray[row][column].value = bugValue
     this.gameArray[row][column].type = 'bug'
@@ -216,7 +232,7 @@ class Draw3P {
 
       if (this.validPick(row + dirs4[n].r, column + dirs4[n].c) && this.valueAt(row + dirs4[n].r, column + dirs4[n].c) == virusValue) {
         var coo = { r: row + dirs4[n].r, c: column + dirs4[n].c }
-        console.log(coo)
+        //console.log(coo)
         result.push(coo)
       }
     }
@@ -514,6 +530,12 @@ class Draw3P {
       }
     }
     return result;
+  }
+  //check for moves
+  checkForMoves() {
+    console.log(this.playerPosition)
+    var results = this.getNeighborsDots(this.playerPosition.row, this.playerPosition.column)
+    console.log(results)
   }
   //returns array of valid neighbor coord that are regular dots
   getNeighborsDots(row, column) {

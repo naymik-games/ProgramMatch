@@ -1,4 +1,4 @@
-var cacheName = 'ProgramMatch v1.00';
+var cacheName = 'ProgramMatch v1.1';
 var filesToCache = [
   '/',
   '/index.html',
