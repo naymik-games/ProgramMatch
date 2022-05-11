@@ -58,7 +58,11 @@ class Draw3P {
   isPlayerAt(row, column) {
     return row == this.getPlayerRow() && column == this.getPlayerColumn();
   }
+  loadGame() {
+    this.gameArray = saveData.gameArray
 
+
+  }
   // generates the game field
   generateField() {
     this.gameArray = [];

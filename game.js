@@ -55,7 +55,9 @@ class playGame extends Phaser.Scene {
         this.cardProdjectStart = currentGame.cardProdjectStart
         this.allowDiagonal = currentGame.allowDiagonal
         this.virusRandomMax = currentGame.virusRandomMax
+        this.playerPositionR = currentGame.playerPositionR
 
+        this.playerPositionC = currentGame.playerPositionC
         this.canPick = true;
         this.dragging = false;
 
@@ -67,12 +69,18 @@ class playGame extends Phaser.Scene {
             items: this.items,
             diagonal: this.allowDiagonal,
             playerPosition: {
-                row: 2,
-                column: 2
+                row: this.playerPositionR,
+                column: this.playerPositionC
             }
         });
         gameOptions.boardOffset.x = (game.config.width - gameOptions.gemSize * this.cols) / 2
-        this.draw3.generateField();
+        if (load) {
+            this.draw3.loadGame();
+        } else {
+            this.draw3.generateField();
+        }
+
+
         this.drawField();
 
         this.playerBadge = this.add.image(gameOptions.boardOffset.x + gameOptions.gemSize / 2, (gameOptions.boardOffset.y + gameOptions.gemSize * (this.rows) + gameOptions.gemSize / 2) + 50, 'badge').setInteractive()
@@ -144,6 +152,9 @@ class playGame extends Phaser.Scene {
                 } else if (this.draw3.typeAt(i, j) == 'productivity') {
 
                     item = this.add.sprite(posX, posY, "productivity").setTint(colors[this.draw3.valueAt(i, j)])
+                } else if (this.draw3.valueAt(i, j) == cardValue) {
+                    item = this.add.sprite(posX, posY, this.draw3.typeAt(i, j))
+
                 } else {
                     item = this.draw3.isPlayerAt(i, j) ? this.add.sprite(posX, posY, "player") : this.add.sprite(posX, posY, "gem").setTint(colors[this.draw3.valueAt(i, j)]);
                 }
@@ -352,7 +363,7 @@ class playGame extends Phaser.Scene {
                     }
                     this.poolArray.push(this.draw3.customDataOf(playerMovement.to.row, playerMovement.to.column));
                     this.draw3.customDataOf(playerMovement.to.row, playerMovement.to.column).alpha = 0;
-
+                    this.draw3.customDataOf(playerMovement.to.row, playerMovement.to.column).setTexture('gem')
 
                     this.playerStep();
                 }
@@ -970,7 +981,8 @@ class playGame extends Phaser.Scene {
         saveData.cardProdjectStart = this.cardProdjectStart
         saveData.allowDiagonal = this.allowDiagonal
         saveData.virusRandomMax = this.virusRandomMax
-
+        saveData.playerPositionR = this.draw3.getPlayerRow()
+        saveData.playerPositionC = this.draw3.getPlayerColumn()
         saveData.gameArray = board
         // saveData.gameArrayExtra = boardExtra
 

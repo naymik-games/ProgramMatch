@@ -44,7 +44,8 @@ let defaultSave = {
   cardProdjectStart: 0,
   allowDiagonal: true,
   virusRandomMax: 4,
-
+  playerPositionR: 2,
+  playerPositionC: 2,
 
 
   gameArray: []
