@@ -35,6 +35,8 @@ class playGame extends Phaser.Scene {
         this.totalLines = 0;
         this.moves = 0
         this.experience = 0
+        this.bugsSquashed = 0
+        this.virusesKilled = 0
         this.score = 0
         this.scoreGoal = 1000
         this.maxMove = 7
@@ -59,13 +61,23 @@ class playGame extends Phaser.Scene {
         this.levelProgressBar.displayWidth = 0;
         this.levelProgressBar.displayHeight = 25;
         this.levelText = this.add.bitmapText((gameOptions.boardOffset.x + gameOptions.gemSize * (this.cols - 1)) + 15, (gameOptions.boardOffset.y + gameOptions.gemSize * (this.rows) + gameOptions.gemSize / 2) + 50, 'topaz', this.onLevel, 60).setOrigin(0, .5).setTint(0x00ff66);
-
-
-        this.chainLengthText = this.add.bitmapText(50, 1550, 'topaz', 'L: 0', 60).setOrigin(0, .5).setTint(0x00ff66);
-        this.totalLinesText = this.add.bitmapText(200, 1550, 'topaz', 'TL: 0', 60).setOrigin(0, .5).setTint(0x00ff66);
-        this.totalMovesText = this.add.bitmapText(450, 1550, 'topaz', 'TM: 0', 60).setOrigin(0, .5).setTint(0x00ff66);
         this.experienceText = this.add.bitmapText(650, 1550, 'topaz', 'E: 0', 60).setOrigin(0, .5).setTint(0x00ff66);
         this.scoreText = this.add.bitmapText(50, 1450, 'topaz', 'S: 0', 60).setOrigin(0, .5).setTint(0xffb000);
+
+
+        this.chainLengthBack = this.add.image(gameOptions.boardOffset.x + gameOptions.gemSize / 2, (gameOptions.boardOffset.y + gameOptions.gemSize * (this.rows) + gameOptions.gemSize / 2) + 50, 'blank').setAlpha(0)
+        this.chainLengthBack.displayWidth = 96;
+        this.chainLengthBack.displayHeight = 96;
+        this.chainLengthText = this.add.bitmapText(gameOptions.boardOffset.x + gameOptions.gemSize / 2, (gameOptions.boardOffset.y + gameOptions.gemSize * (this.rows) + gameOptions.gemSize / 2) + 50, 'topaz', '0', 60).setOrigin(.5).setTint(0x333333).setAlpha(0);
+
+
+
+
+        this.totalLinesText = this.add.bitmapText(450, 1450, 'topaz', 'TL: 0', 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
+        this.totalMovesText = this.add.bitmapText(450, 1500, 'topaz', 'TM: 0', 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
+        this.totalBugsText = this.add.bitmapText(450, 1550, 'topaz', 'B: 0', 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
+        this.totoalVirusesText = this.add.bitmapText(450, 1600, 'topaz', 'V: 0', 50).setOrigin(0, .5).setTint(0x00ff66).setAlpha(1);
+
         this.input.on("pointerdown", this.gemSelect, this);
         this.input.on("pointermove", this.drawPath, this);
         this.input.on("pointerup", this.removeGems, this);
@@ -128,6 +140,8 @@ class playGame extends Phaser.Scene {
             let row = Math.floor((pointer.y - gameOptions.boardOffset.y) / gameOptions.gemSize);
             let col = Math.floor((pointer.x - gameOptions.boardOffset.x) / gameOptions.gemSize);
             if (this.draw3.validPick(row, col) && this.draw3.isPlayerAt(row, col)) {
+                this.chainLengthBack.setAlpha(1)
+                this.chainLengthText.setAlpha(1)
                 this.canPick = false;
                 this.draw3.putInChain(row, col)
                 this.draw3.customDataOf(row, col).alpha = 0.5;
@@ -156,7 +170,7 @@ class playGame extends Phaser.Scene {
                         this.draw3.customDataOf(row, col).alpha = 0.5;
                         this.draw3.putInChain(row, col);
 
-                        this.chainLengthText.setText('L: ' + this.draw3.getChainLength())
+                        this.chainLengthText.setText(this.draw3.getChainLength())
                         this.displayPath()
                     }
                     else {
@@ -187,7 +201,7 @@ class playGame extends Phaser.Scene {
             var moveLines = this.draw3.getChainLength()
             this.totalLines += this.draw3.getChainLength()
             this.totalLinesText.setText('TL: ' + this.totalLines)
-            this.chainLengthText.setText('L: 0')
+            this.chainLengthText.setText('0')
             this.dragging = false;
             if (this.draw3.getChainLength() < 2) {
                 let chain = this.draw3.emptyChain();
@@ -195,6 +209,8 @@ class playGame extends Phaser.Scene {
                     this.draw3.customDataOf(item.row, item.column).alpha = 1;
                 }.bind(this));
                 this.canPick = true;
+                this.chainLengthBack.setAlpha(0)
+                this.chainLengthText.setAlpha(0)
             }
             else {
                 this.colorBombs = []
@@ -215,6 +231,8 @@ class playGame extends Phaser.Scene {
         if (playerMovement) {
             let player = this.draw3.customDataOf(playerMovement.from.row, playerMovement.from.column);
             player.alpha = 1;
+            var newL = this.draw3.getChainLength() - 1
+            this.chainLengthText.setText(newL)
             this.tweens.add({
                 targets: player,
                 x: player.x + (playerMovement.from.column - playerMovement.to.column) * gameOptions.gemSize,
@@ -233,6 +251,7 @@ class playGame extends Phaser.Scene {
                                 let randomValue = Math.floor(Math.random() * this.items)
                                 this.explode(nei[i].r, nei[i].c)
                                 //this.totalLines += 20
+                                this.virusesKilled++;
                                 this.score += 100
                                 this.updateStats()
                                 this.draw3.setValue(nei[i].r, nei[i].c, randomValue)
@@ -325,7 +344,8 @@ class playGame extends Phaser.Scene {
             this.canPick = true;
         }
 
-
+        this.chainLengthBack.setAlpha(0)
+        this.chainLengthText.setAlpha(0)
     }
     updateStats() {
         this.experience = Math.floor(this.totalLines / this.moves)
@@ -334,6 +354,8 @@ class playGame extends Phaser.Scene {
 
         this.experienceText.setText('E: ' + this.experience)
         this.totalMovesText.setText('TM: ' + this.moves)
+        this.totalBugsText.setText('B: ' + this.bugsSquashed)
+        this.totoalVirusesText.setText('V: ' + this.virusesKilled)
         var per = this.score / this.scoreGoal
 
         //this.levelProgressBar.displayWidth = 
@@ -389,8 +411,12 @@ class playGame extends Phaser.Scene {
             this.items = 5
             this.draw3.items = 5
         }
-        this.addVirus(this.onLevel)
-        this.addProductivity(this.onLevel)
+        tween.on('complete', function (tween, targets) {
+            this.addVirus(this.onLevel)
+            this.addProductivity(this.onLevel)
+            this.showToast('You\'ve been promoted!')
+        }, this);
+
     }
     addVirus(count) {
         var viruses = this.draw3.addVirus(count)
@@ -512,6 +538,7 @@ class playGame extends Phaser.Scene {
                 this.draw3.setEmpty(bug.row, bug.col);
                 this.explode(bug.row, bug.col)
                 //this.totalLines += 10
+                this.bugsSquashed++
                 this.score += 50
                 this.updateStats()
                 this.tweens.add({
@@ -651,31 +678,31 @@ class playGame extends Phaser.Scene {
     makeMenu() {
         ////////menu
         this.menuGroup = this.add.container().setDepth(3);
-        var menuBG = this.add.image(game.config.width / 2, game.config.height - 85, 'blank').setOrigin(.5, 0).setTint(0x333333).setAlpha(.8)
+        var menuBG = this.add.image(175, game.config.height - 85, 'blank').setOrigin(.5, 0).setTint(0x333333).setAlpha(.8)
         menuBG.displayWidth = 300;
         menuBG.displayHeight = 600
         this.menuGroup.add(menuBG)
-        var menuButton = this.add.image(game.config.width / 2, game.config.height - 40, "menu").setInteractive().setDepth(3);
+        var menuButton = this.add.image(175, game.config.height - 40, "menu").setInteractive().setDepth(3);
         menuButton.on('pointerdown', this.toggleMenu, this)
         menuButton.setOrigin(0.5);
         this.menuGroup.add(menuButton);
-        var homeButton = this.add.bitmapText(game.config.width / 2, game.config.height + 50, 'topaz', 'HOME', 50).setOrigin(.5).setTint(0xffffff).setAlpha(1).setInteractive();
+        var homeButton = this.add.bitmapText(175, game.config.height + 50, 'topaz', 'HOME', 50).setOrigin(.5).setTint(0xffffff).setAlpha(1).setInteractive();
         homeButton.on('pointerdown', function () {
             this.scene.stop()
             this.scene.start('startGame')
         }, this)
         this.menuGroup.add(homeButton);
-        var wordButton = this.add.bitmapText(game.config.width / 2, game.config.height + 140, 'topaz', 'WORDS', 50).setOrigin(.5).setTint(0xffffff).setAlpha(1).setInteractive();
+        var wordButton = this.add.bitmapText(175, game.config.height + 140, 'topaz', 'HELP', 50).setOrigin(.5).setTint(0xffffff).setAlpha(1).setInteractive();
         wordButton.on('pointerdown', function () {
-            var data = {
-                yesWords: this.foundWords,
-                noWords: this.notWords
-            }
-            this.scene.pause()
-            this.scene.launch('wordsPlayed', data)
+            /*    var data = {
+                   yesWords: this.foundWords,
+                   noWords: this.notWords
+               }
+               this.scene.pause()
+               this.scene.launch('wordsPlayed', data) */
         }, this)
         this.menuGroup.add(wordButton);
-        var helpButton = this.add.bitmapText(game.config.width / 2, game.config.height + 230, 'topaz', 'RESTART', 50).setOrigin(.5).setTint(0xffffff).setAlpha(1).setInteractive();
+        var helpButton = this.add.bitmapText(175, game.config.height + 230, 'topaz', 'RESTART', 50).setOrigin(.5).setTint(0xffffff).setAlpha(1).setInteractive();
         helpButton.on('pointerdown', function () {
 
 

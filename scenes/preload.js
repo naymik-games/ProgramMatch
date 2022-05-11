@@ -90,6 +90,9 @@ class preloadGame extends Phaser.Scene {
     this.load.image("blank", "assets/sprites/blank.png");
     this.load.image("productivity", "assets/sprites/productivity.png");
     this.load.image("menu", "assets/sprites/menu.png");
+    this.load.image("card_virus", "assets/sprites/card_virus.png");
+    this.load.image("card_code", "assets/sprites/card_code.png");
+    this.load.image("card_prodject", "assets/sprites/card_prodject.png");
 
 
   }
