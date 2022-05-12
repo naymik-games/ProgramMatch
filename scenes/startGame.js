@@ -18,15 +18,15 @@ class startGame extends Phaser.Scene {
       localStorage.setItem('pmSave', JSON.stringify(defaultSave));
       saveData = defaultSave;
     }
-    this.cameras.main.setBackgroundColor(0x000000);
+    this.cameras.main.setBackgroundColor(0x282828);
 
-    var title = this.add.bitmapText(game.config.width / 2, 100, 'topaz', 'ProgramMatch', 150).setOrigin(.5).setTint(0xc76210);
+    var title = this.add.bitmapText(game.config.width / 2, 100, 'topaz', 'codeClear', 120).setOrigin(.5).setTint(0x00ff66);
 
-    var startTime = this.add.bitmapText(game.config.width / 2 - 75, 275, 'topaz', 'New Game >', 70).setOrigin(0, .5).setTint(0xffffff);
+    var startTime = this.add.bitmapText(game.config.width / 2 - 75, 275, 'topaz', 'let newGame >', 70).setOrigin(0, .5).setTint(0xffffff);
     startTime.setInteractive();
     startTime.on('pointerdown', this.clickHandler, this);
 
-    var laodTime = this.add.bitmapText(game.config.width / 2 - 75, 575, 'topaz', 'Load Game >', 70).setOrigin(0, .5).setTint(0xffffff);
+    var laodTime = this.add.bitmapText(game.config.width / 2 - 75, 575, 'topaz', 'let loadGame >', 70).setOrigin(0, .5).setTint(0xffffff);
     laodTime.setInteractive();
     laodTime.on('pointerdown', this.clickHandler2, this);
     // var laodTime = this.add.bitmapText(game.config.width / 2 - 75, 675, 'topaz', saveData.score + ' Points on Level ' + saveData.level, 50).setOrigin(0, .5).setTint(0xffffff);

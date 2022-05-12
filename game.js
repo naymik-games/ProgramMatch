@@ -133,6 +133,21 @@ class playGame extends Phaser.Scene {
         this.cardVirusIcon = this.add.image(-50, -50, 'card_virus')
         this.cardCodeIcon = this.add.image(-50, -50, 'card_code')
         this.cardProdjectIcon = this.add.image(-50, -50, 'card_prodject')
+        if (load) {
+            if (this.hasCardCode) {
+                this.cardCodeIcon.setPosition(750, 1450)
+            }
+            if (this.hasCardProdject) {
+                this.cardProdjectIcon.setPosition(650, 1450)
+            }
+            if (this.hasCardVirus) {
+
+                this.cardVirusIcon.setPosition(850, 1450)
+            }
+        }
+
+
+
     }
     drawField() {
         this.poolArray = [];
@@ -290,7 +305,7 @@ class playGame extends Phaser.Scene {
                 this.score += moveLines * this.experience
                 if (this.draw3.getChainLength() > 24) {
                     this.score += 1000
-                    this.showToast('25+ lines of code!')
+                    this.showToast('Bonus! 25+ lines of code')
 
                 }
                 this.updateStats()
@@ -729,6 +744,11 @@ class playGame extends Phaser.Scene {
             this.saveItems = this.items
             this.items = 3
             this.draw3.items = 3
+            var dots = this.draw3.getAllValue345()
+            dots.forEach(function (dot) {
+                this.draw3.setValue(dot.row, dot.col, 0)
+                this.draw3.customDataOf(dot.row, dot.col).setTint(colors[0])
+            }.bind(this))
         }
         var tween = this.tweens.add({
             targets: target,

@@ -260,6 +260,20 @@ class Draw3P {
     }
     return result
   }
+  getAllValue345() {
+    let result = []
+    for (let i = 0; i < this.getRows(); i++) {
+      for (let j = 0; j < this.getColumns(); j++) {
+        if (this.valueAt(i, j) > 2 && this.valueAt(i, j) < 6) {
+          result.push({
+            row: i,
+            col: j
+          })
+        }
+      }
+    }
+    return result
+  }
   // sets a custom data of the item at (row, column)
   setCustomData(row, column, customData) {
     this.gameArray[row][column].customData = customData;
